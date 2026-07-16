@@ -122,6 +122,26 @@ PK --> DOCK["🚚 Loading Dock"]
 
 ---
 
+## 📹 System Demonstrations
+
+### Alarm Activation
+
+<!-- 🎥 link or embed Videos/AlarmActivation.mp4 -->
+[▶ AlarmActivation.mp4](Videos/AlarmActivation.mp4)
+
+Triggers a fault condition and shows the alarm latching, annunciating on the FactoryTalk View alarm summary, and clearing on operator acknowledgement.
+
+---
+
+### Destination Selection
+
+<!-- 🎥 link or embed Videos/DestinationSelection.mp4 -->
+[▶ DestinationSelection.mp4](Videos/DestinationSelection.mp4)
+
+Reads a package barcode and shows the PLC routing it to the selected lane, energizing the correct divert and updating the lane screen and package count.
+
+---
+
 ## ⚙️ PLC Logic
 
 ### Package Detection
