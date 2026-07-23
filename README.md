@@ -167,7 +167,7 @@ Each conveyor and divert is gated by a downstream-ready permissive, so a package
 
 ![Alarm Handling Logic](warehouse-%20alarms.png)
 
-Jam, scanner-fault, overweight, and lane-full conditions each set a latched alarm bit surfaced to the FactoryTalk View alarm summary. Alarms are latched and require operator acknowledgement so a transient fault is never missed, and each alarm identifies the affected station for fast diagnosis.
+A conveyor jam is time-qualified: `Conv_Jam_Sensor` runs `Jam_onTimer` (10 s preset), and only when `Jam_onTimer.DN` sets does the rung latch `Alarm_Jam`, so a brief blockage doesn't nuisance-trip. `E_Stop` latches `Alarm_EStop`, and a commanded `Conveyor1_Motor` with no `Motor1_feedback` latches `Alarm_Motor_Fault`. Each alarm is set with an `OTL` so it holds until acknowledged, even if the fault clears on its own. Dedicated `Reset_Jam`, `Reset_E_Stop`, and `Reset_Motor_Alarm` bits unlatch (`OTU`) their alarms once the operator acknowledges.
 
 ---
 
