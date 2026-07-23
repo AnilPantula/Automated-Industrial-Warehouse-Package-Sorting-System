@@ -113,7 +113,7 @@ PK --> DOCK["🚚 Loading Dock"]
 
 | Main Overview HMI | Manual Control Screen | Alarm Screen |
 |:---:|:---:|:---:|
-| ![Main Overview](Warehouse-%20overview.png) | ![Manual Control](warehouse-manual%20control%20hmi.png) | ![Alarm Screen](warehouse-%20alrams%20hmi.png) |
+| ![Main Overview](Warehouse-%20overview.png) | ![Manual Control](warehouse-manual%20control%20hmi.png) | ![Alarm Screen](warehouse-%20alarms%20hmi.png) |
 
 ---
 
@@ -151,7 +151,7 @@ All three rungs are gated by `Sys_Online`, so the routine only runs when the lin
 
 ![Destination Sorting Logic](warehouse-destination.png)
 
-The barcode scanner reads each package destination code, and a data comparison matches it to one of the lanes, energizing the corresponding divert output as the package reaches the sorting station. A comparison-based routing table was chosen over hard-wired logic so destinations can be reconfigured without rewiring, and so lanes can be added or reassigned in software.
+Every rung is gated by `Sys_Online`, and for an in-spec package (`Weight_OK`) an `EQU` compares `Destenation_code` against 1, 2, or 3 to energize the matching lane (`Lane_1` to `Lane_3`). `Lane_4` instead requires `OverWeight_lane`, so an overweight package with `Destenation_code` = 4 is diverted to the oversized lane. One `EQU` per lane keeps the routing table easy to read and extend.
 
 ---
 
@@ -159,7 +159,7 @@ The barcode scanner reads each package destination code, and a data comparison m
 
 ![Conveyor Interlocking Logic](Warehouse-interlocking.png)
 
-Each conveyor and divert is gated by a downstream-ready permissive, so a package is never released onto a stopped or full lane. Interlocking was chosen to protect equipment and product: it prevents collisions and jams at merge and divert points, which are the highest-risk locations on any sorting line.
+`Conveyor1_Motor` and `Saftey_OK` energize `conveyor2_Motor`, which with `Saftey_OK` energizes `Main_Conveyor_Motor`, chaining each conveyor behind the one upstream. Since `Saftey_OK` sits in every rung, a stopped or unsafe upstream conveyor immediately drops everything downstream.
 
 ---
 
