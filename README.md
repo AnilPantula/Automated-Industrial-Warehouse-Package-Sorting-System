@@ -1,6 +1,6 @@
-<!-- HERO IMAGE: replace with a wide FactoryTalk View HMI screenshot of the full warehouse system -->
+<!-- HERO IMAGE -->
 <p align="center">
-  <img src="Images/hero-warehouse.png" alt="Industrial Warehouse Package Sorting Automation System HMI Overview" width="100%">
+  <img src="warehouse-destination%20hmi.png" alt="Industrial Warehouse Package Sorting Automation System HMI Overview" width="100%">
 </p>
 
 <h1 align="center">Industrial Warehouse Package Sorting Automation System</h1>
@@ -111,14 +111,9 @@ PK --> DOCK["🚚 Loading Dock"]
 
 ## 🖼️ Project Gallery
 
-<!-- Drop screenshots into /Images and they render as a grid. -->
 | Main Overview HMI | Manual Control Screen | Alarm Screen |
 |:---:|:---:|:---:|
-| ![Main Overview](Images/hmi-main-overview.png) | ![Manual Control](Images/hmi-manual-control.png) | ![Alarm Screen](Images/hmi-alarms.png) |
-| **Toronto Lane** | **Express Lane** | **International Lane** |
-| ![Toronto Lane](Images/hmi-toronto-lane.png) | ![Express Lane](Images/hmi-express-lane.png) | ![International Lane](Images/hmi-international-lane.png) |
-| **Oversized Lane** | | |
-| ![Oversized Lane](Images/hmi-oversized-lane.png) | | |
+| ![Main Overview](Warehouse-%20overview.png) | ![Manual Control](warehouse-manual%20control%20hmi.png) | ![Alarm Screen](warehouse-%20alarms%20hmi.png) |
 
 ---
 
@@ -144,37 +139,25 @@ Reads a package barcode and shows the PLC routing it to the selected lane, energ
 
 ## ⚙️ PLC Logic
 
-### Package Detection
+### Package Detection, Counting & Weight
 
-<!-- 📷 replace with ladder screenshot of the detection routine -->
-![Package Detection Logic](Images/logic-package-detection.png)
+![Package Detection, Counting and Weight](Warehouse-%20numberweight.png)
 
-A photo-eye at the receiving conveyor sets a package-present bit that triggers the sort sequence for that unit. Detection is sensor-driven rather than time-based so the line only indexes when a real package is present, eliminating empty cycles and keeping tracking aligned with actual product on the belt.
+A photo-eye detects each package entering the line, a count-up counter increments the running package total, and a load cell provides the weight value that is compared against tolerance limits. Keeping detection, counting, and weight in one routine holds all of a package's data together as it indexes, so the count stays aligned with real product and out-of-tolerance packages are flagged for the Oversized lane before sorting. Analog limit comparison was chosen for the weight check so the acceptance band can be tuned from the HMI without a program change.
 
 ---
 
 ### Destination Sorting
 
-<!-- 📷 replace with ladder screenshot of the sorting routine -->
-![Destination Sorting Logic](Images/logic-destination-sorting.png)
+![Destination Sorting Logic](warehouse-destination.png)
 
-The barcode scanner reads each package destination code, and a data comparison matches it to one of the four lanes, energizing the corresponding divert output as the package reaches the sorting station. A comparison-based routing table was chosen over hard-wired logic so destinations can be reconfigured without rewiring, and so lanes can be added or reassigned in software.
-
----
-
-### Weight Inspection
-
-<!-- 📷 replace with ladder screenshot of the weight routine -->
-![Weight Inspection Logic](Images/logic-weight-inspection.png)
-
-A load cell provides an analog weight value that is scaled and checked against minimum and maximum limits. Packages outside tolerance are flagged and diverted to the Oversized lane. Analog limit comparison was chosen so the acceptance band can be tuned from the HMI without a program change, adapting to different product mixes.
+The barcode scanner reads each package destination code, and a data comparison matches it to one of the lanes, energizing the corresponding divert output as the package reaches the sorting station. A comparison-based routing table was chosen over hard-wired logic so destinations can be reconfigured without rewiring, and so lanes can be added or reassigned in software.
 
 ---
 
 ### Conveyor Interlocking
 
-<!-- 📷 replace with ladder screenshot of the interlock routine -->
-![Conveyor Interlocking Logic](Images/logic-conveyor-interlocking.png)
+![Conveyor Interlocking Logic](Warehouse-interlocking.png)
 
 Each conveyor and divert is gated by a downstream-ready permissive, so a package is never released onto a stopped or full lane. Interlocking was chosen to protect equipment and product: it prevents collisions and jams at merge and divert points, which are the highest-risk locations on any sorting line.
 
@@ -182,37 +165,17 @@ Each conveyor and divert is gated by a downstream-ready permissive, so a package
 
 ### Alarm Handling
 
-<!-- 📷 replace with ladder screenshot of the alarm routine -->
-![Alarm Handling Logic](Images/logic-alarm-handling.png)
+![Alarm Handling Logic](warehouse-%20alarms.png)
 
-Jam, scanner-fault, overweight, lane-full, and emergency-stop conditions each set a latched alarm bit surfaced to the FactoryTalk View alarm summary. Alarms are latched and require operator acknowledgement so a transient fault is never missed, and each alarm identifies the affected station for fast diagnosis.
-
----
-
-### Emergency Stop
-
-<!-- 📷 replace with ladder screenshot of the E-Stop routine -->
-![Emergency Stop Logic](Images/logic-emergency-stop.png)
-
-The emergency stop drops a master run permissive that is evaluated ahead of all sequencing logic, de-energizing every conveyor and divert regardless of operating mode. Evaluating the E-Stop first in the scan makes the stop fail-safe: nothing downstream can hold an output once the permissive is removed.
+Jam, scanner-fault, overweight, and lane-full conditions each set a latched alarm bit surfaced to the FactoryTalk View alarm summary. Alarms are latched and require operator acknowledgement so a transient fault is never missed, and each alarm identifies the affected station for fast diagnosis.
 
 ---
 
-### Package Counter
+### System Start (System Online)
 
-<!-- 📷 replace with ladder screenshot of the counter routine -->
-![Package Counter Logic](Images/logic-package-counter.png)
+![System Start Logic](warehouse-start.png)
 
-Count-up counters increment per lane and in total as packages are diverted, feeding the throughput displays on the HMI. Per-lane counting was chosen so operators can track production by destination and quickly spot an imbalance that may indicate a scanner or divert problem.
-
----
-
-### Manual Control
-
-<!-- 📷 replace with ladder screenshot of the manual routine -->
-![Manual Control Logic](Images/logic-manual-control.png)
-
-Manual mode lets an operator jog individual conveyors and diverts from the HMI to clear jams and commission the line, while the emergency-stop circuit stays active. A dedicated manual mode was chosen so maintenance can move equipment safely without bypassing the interlocks or the E-Stop.
+A master Start latches the line into a System Online state that seals in and serves as the run permissive for all downstream sequencing, while Stop drops it. A state-based start gives the whole line a single, clean enable, so the conveyors and diverts only run once the operator has commanded the system online.
 
 ---
 
