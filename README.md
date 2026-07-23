@@ -83,6 +83,22 @@ The system is supervised end-to-end from a FactoryTalk View HMI, with live statu
 
 ---
 
+## 🔄 Control Sequence
+
+```mermaid
+flowchart TB
+A["📥 Package Detected"] --> B["🏷️ Barcode Read"]
+B --> C["⚖️ Weight Inspection"]
+C --> D["🔀 Destination Decision"]
+D --> E["➡️ Conveyor Routing"]
+E --> F["📍 Lane Detection"]
+F --> G["📦 Packaging"]
+G --> H["🚚 Shipment"]
+H --> I["🔢 Counter Update"]
+```
+
+---
+
 ## 🏗️ System Architecture
 
 ```mermaid
@@ -143,7 +159,7 @@ Reads a package barcode and shows the PLC routing it to the selected lane, energ
 
 ![Package Detection, Counting and Weight](Warehouse-%20numberweight.png)
 
-All three rungs are gated by `Sys_Online`, so the routine only runs when the line is started. When `Package_Entry_Sensor` detects a package, a `CTU` increments `Number_of_packages` to keep a live count. If `Weight_OK_Sensor` is made, `Weight_OK` is set to pass the package. If `Weight_Overweight_Sensor` is made instead, `OverWeight_lane` is energized to divert the package to the oversized lane.
+We want a live package count and a quick good-or-bad weight check, but only while the line is actually running. So every rung starts with `Sys_Online`. `Package_Entry_Sensor` bumps a `CTU` (`Number_of_packages`) each time a package comes in. For weight, `Weight_OK_Sensor` sets `Weight_OK` to pass a good package, and `Weight_Overweight_Sensor` turns on `OverWeight_lane` to kick a heavy one over to the oversized lane.
 
 ---
 
@@ -151,7 +167,7 @@ All three rungs are gated by `Sys_Online`, so the routine only runs when the lin
 
 ![Destination Sorting Logic](warehouse-destination.png)
 
-Every rung is gated by `Sys_Online`, and for an in-spec package (`Weight_OK`) an `EQU` compares `Destenation_code` against 1, 2, or 3 to energize the matching lane (`Lane_1` to `Lane_3`). `Lane_4` instead requires `OverWeight_lane`, so an overweight package with `Destenation_code` = 4 is diverted to the oversized lane. One `EQU` per lane keeps the routing table easy to read and extend.
+Once a package passes the weight check, it needs to end up in the right lane. Every rung needs `Sys_Online`, and the normal lanes also need `Weight_OK`. An `EQU` compares `Destenation_code` to 1, 2, or 3 and fires the matching lane, `Lane_1` through `Lane_3`. `Lane_4` is the exception: it uses `OverWeight_lane` with code 4, so overweight packages get routed there instead.
 
 ---
 
@@ -159,7 +175,7 @@ Every rung is gated by `Sys_Online`, and for an in-spec package (`Weight_OK`) an
 
 ![Conveyor Interlocking Logic](Warehouse-interlocking.png)
 
-`Conveyor1_Motor` and `Saftey_OK` energize `conveyor2_Motor`, which with `Saftey_OK` energizes `Main_Conveyor_Motor`, chaining each conveyor behind the one upstream. Since `Saftey_OK` sits in every rung, a stopped or unsafe upstream conveyor immediately drops everything downstream.
+A conveyor should never feed product onto one that's stopped, and any safety trip should take the whole line down. So each conveyor only runs if the one before it is running and `Saftey_OK` is good. `Conveyor1_Motor` and `Saftey_OK` start `conveyor2_Motor`, which along with `Saftey_OK` starts `Main_Conveyor_Motor`. Because `Saftey_OK` is in every rung, losing it drops everything downstream.
 
 ---
 
@@ -167,7 +183,7 @@ Every rung is gated by `Sys_Online`, and for an in-spec package (`Weight_OK`) an
 
 ![Alarm Handling Logic](warehouse-%20alarms.png)
 
-A conveyor jam is time-qualified: `Conv_Jam_Sensor` runs `Jam_onTimer` (10 s preset), and only when `Jam_onTimer.DN` sets does the rung latch `Alarm_Jam`, so a brief blockage doesn't nuisance-trip. `E_Stop` latches `Alarm_EStop`, and a commanded `Conveyor1_Motor` with no `Motor1_feedback` latches `Alarm_Motor_Fault`. Each alarm is set with an `OTL` so it holds until acknowledged, even if the fault clears on its own. Dedicated `Reset_Jam`, `Reset_E_Stop`, and `Reset_Motor_Alarm` bits unlatch (`OTU`) their alarms once the operator acknowledges.
+Faults should stay on until someone acknowledges them, not clear on their own. A jam is time-qualified first: `Conv_Jam_Sensor` runs `Jam_onTimer` (10 s), and only when it finishes does `Alarm_Jam` latch, so a quick blockage doesn't nuisance-trip. `E_Stop` latches `Alarm_EStop`, and if `Conveyor1_Motor` is running but `Motor1_feedback` is missing, `Alarm_Motor_Fault` latches. Each one is held with an `OTL` until its reset (`Reset_Jam`, `Reset_E_Stop`, `Reset_Motor_Alarm`) clears it.
 
 ---
 
@@ -175,7 +191,7 @@ A conveyor jam is time-qualified: `Conv_Jam_Sensor` runs `Jam_onTimer` (10 s pre
 
 ![System Start Logic](warehouse-start.png)
 
-`Master_start_pb` sets `Sys_Online`, which seals in through its own contact and holds while `Saftey_OK` is true and `Master_Stop_Pb` and `E_Stop` are clear. `Saftey_OK` is the aggregate healthy condition, true only when `E_Stop`, `Alarm_Jam`, `Alarm_Motor_Fault`, and `Alarm_EStop` are all inactive, so any latched alarm drops the line. With both `Sys_Online` and `Saftey_OK` set, `Conveyor1_Motor` starts and kicks off the interlock chain.
+The line needs one clean start that only runs when everything is safe. `Master_start_pb` sets `Sys_Online`, which seals in through its own contact so it stays on after you let go of the button, and holds while `Saftey_OK` is good and `Master_Stop_Pb` and `E_Stop` are clear. `Saftey_OK` is just the no-active-alarms check: it is only true when `E_Stop`, `Alarm_Jam`, `Alarm_Motor_Fault`, and `Alarm_EStop` are all clear. Once both are on, `Conveyor1_Motor` starts and the interlock chain takes over.
 
 ---
 
@@ -220,12 +236,12 @@ A complete rung-by-rung walkthrough of the program, following a package from det
 ## 📈 Results
 
 - ✔ Developed a complete PLC control system for an automated warehouse package-sorting line
-- ✔ Implemented barcode-based destination routing across four sorting lanes
-- ✔ Designed analog weight inspection with configurable tolerance and oversized rejection
-- ✔ Built conveyor interlocking to prevent collisions and jams at merge and divert points
-- ✔ Developed a FactoryTalk View HMI with per-lane screens, package counts, and an alarm summary
-- ✔ Verified PLC I/O, HMI communication, and full process operation on Allen-Bradley hardware
-- ✔ Validated detection, routing, weight rejection, counting, alarms, and emergency-stop response
+- ✔ Simulated four independent destination lanes with barcode-based routing
+- ✔ Implemented seven FactoryTalk View HMI screens for operator supervision
+- ✔ Integrated nine digital inputs and eight digital outputs
+- ✔ Built conveyor interlocking and a sealed-in System Online start with safety aggregation
+- ✔ Validated package detection, counting, weight rejection, alarm response, and emergency-stop logic
+- ✔ Verified PLC logic, HMI communication, and complete process operation in the Studio 5000 and FactoryTalk View development environment
 
 ---
 
