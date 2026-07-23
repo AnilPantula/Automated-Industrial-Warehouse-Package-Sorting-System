@@ -144,7 +144,7 @@ Reads a package barcode and shows the PLC routing it to the selected lane, energ
 
 ![Package Detection, Counting and Weight](Warehouse-%20numberweight.png)
 
-We want a live package count and a quick good-or-bad weight check, but only while the line is actually running. So every rung starts with `Sys_Online`. `Package_Entry_Sensor` bumps a `CTU` (`Number_of_packages`) each time a package comes in. For weight, `Weight_OK_Sensor` sets `Weight_OK` to pass a good package, and `Weight_Overweight_Sensor` turns on `OverWeight_lane` to kick a heavy one over to the oversized lane.
+I only want the line counting and checking weight while it is actually running, so every rung starts with `Sys_Online`. Each time `Package_Entry_Sensor` sees a package, a counter (`CTU`, `Number_of_packages`) goes up by one. For weight, `Weight_OK_Sensor` sets `Weight_OK` if the package is fine, and `Weight_Overweight_Sensor` turns on `OverWeight_lane` if it is too heavy, so it gets sent to the oversized lane.
 
 ---
 
@@ -152,7 +152,7 @@ We want a live package count and a quick good-or-bad weight check, but only whil
 
 ![Destination Sorting Logic](warehouse-destination.png)
 
-Once a package passes the weight check, it needs to end up in the right lane. Every rung needs `Sys_Online`, and the normal lanes also need `Weight_OK`. An `EQU` compares `Destenation_code` to 1, 2, or 3 and fires the matching lane, `Lane_1` through `Lane_3`. `Lane_4` is the exception: it uses `OverWeight_lane` with code 4, so overweight packages get routed there instead.
+After a package passes the weight check, it needs to go to the right lane. Every rung needs `Sys_Online`, and the normal lanes also need `Weight_OK`. I used an `EQU` to check the `Destenation_code`: if it equals 1, 2, or 3, the matching lane turns on (`Lane_1` to `Lane_3`). `Lane_4` is different, it turns on with `OverWeight_lane` and code 4, so overweight packages go there.
 
 ---
 
@@ -160,7 +160,7 @@ Once a package passes the weight check, it needs to end up in the right lane. Ev
 
 ![Conveyor Interlocking Logic](Warehouse-interlocking.png)
 
-A conveyor should never feed product onto one that's stopped, and any safety trip should take the whole line down. So each conveyor only runs if the one before it is running and `Saftey_OK` is good. `Conveyor1_Motor` and `Saftey_OK` start `conveyor2_Motor`, which along with `Saftey_OK` starts `Main_Conveyor_Motor`. Because `Saftey_OK` is in every rung, losing it drops everything downstream.
+I didn't want a conveyor running product onto one that is stopped, so each conveyor only runs if the one before it is running and `Saftey_OK` is on. `Conveyor1_Motor` and `Saftey_OK` turn on `conveyor2_Motor`, and `conveyor2_Motor` with `Saftey_OK` turns on `Main_Conveyor_Motor`. Since `Saftey_OK` is in every rung, if it drops, all the conveyors stop.
 
 ---
 
@@ -168,7 +168,7 @@ A conveyor should never feed product onto one that's stopped, and any safety tri
 
 ![Alarm Handling Logic](warehouse-%20alarms.png)
 
-Faults should stay on until someone acknowledges them, not clear on their own. A jam is time-qualified first: `Conv_Jam_Sensor` runs `Jam_onTimer` (10 s), and only when it finishes does `Alarm_Jam` latch, so a quick blockage doesn't nuisance-trip. `E_Stop` latches `Alarm_EStop`, and if `Conveyor1_Motor` is running but `Motor1_feedback` is missing, `Alarm_Motor_Fault` latches. Each one is held with an `OTL` until its reset (`Reset_Jam`, `Reset_E_Stop`, `Reset_Motor_Alarm`) clears it.
+I wanted alarms to stay on until I clear them, not turn off by themselves. For a jam, I used a timer: `Conv_Jam_Sensor` starts `Jam_onTimer` (10 seconds), and `Alarm_Jam` only latches if the sensor is still blocked when the timer finishes, so a package that clears quickly doesn't set off a false alarm. `E_Stop` latches `Alarm_EStop`, and if `Conveyor1_Motor` is on but there is no `Motor1_feedback`, `Alarm_Motor_Fault` latches. Each alarm stays on until I reset it with `Reset_Jam`, `Reset_E_Stop`, or `Reset_Motor_Alarm`.
 
 ---
 
@@ -176,7 +176,7 @@ Faults should stay on until someone acknowledges them, not clear on their own. A
 
 ![System Start Logic](warehouse-start.png)
 
-The line needs one clean start that only runs when everything is safe. `Master_start_pb` sets `Sys_Online`, which seals in through its own contact so it stays on after you let go of the button, and holds while `Saftey_OK` is good and `Master_Stop_Pb` and `E_Stop` are clear. `Saftey_OK` is just the no-active-alarms check: it is only true when `E_Stop`, `Alarm_Jam`, `Alarm_Motor_Fault`, and `Alarm_EStop` are all clear. Once both are on, `Conveyor1_Motor` starts and the interlock chain takes over.
+This is the main on/off for the line, and it only runs when everything is safe. `Master_start_pb` turns on `Sys_Online`, and it seals in through its own contact so it stays on after I let go of the button. It stays on as long as `Saftey_OK` is on and `Master_Stop_Pb` and `E_Stop` are not pressed. `Saftey_OK` is basically a no-alarms check, it is only on when `E_Stop`, `Alarm_Jam`, `Alarm_Motor_Fault`, and `Alarm_EStop` are all clear. Once `Sys_Online` and `Saftey_OK` are both on, `Conveyor1_Motor` starts.
 
 ---
 
