@@ -175,7 +175,7 @@ A conveyor jam is time-qualified: `Conv_Jam_Sensor` runs `Jam_onTimer` (10 s pre
 
 ![System Start Logic](warehouse-start.png)
 
-A master Start latches the line into a System Online state that seals in and serves as the run permissive for all downstream sequencing, while Stop drops it. A state-based start gives the whole line a single, clean enable, so the conveyors and diverts only run once the operator has commanded the system online.
+`Master_start_pb` sets `Sys_Online`, which seals in through its own contact and holds while `Saftey_OK` is true and `Master_Stop_Pb` and `E_Stop` are clear. `Saftey_OK` is the aggregate healthy condition, true only when `E_Stop`, `Alarm_Jam`, `Alarm_Motor_Fault`, and `Alarm_EStop` are all inactive, so any latched alarm drops the line. With both `Sys_Online` and `Saftey_OK` set, `Conveyor1_Motor` starts and kicks off the interlock chain.
 
 ---
 
