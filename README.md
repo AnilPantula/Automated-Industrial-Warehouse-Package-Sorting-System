@@ -143,7 +143,7 @@ Reads a package barcode and shows the PLC routing it to the selected lane, energ
 
 ![Package Detection, Counting and Weight](Warehouse-%20numberweight.png)
 
-Every rung is gated by `Sys_Online`, so nothing counts or routes while the line is stopped. A `Package_Entry_Sensor` drives a `CTU` (`Number_of_packages`) that increments as each package enters. Weight then splits on two discrete sensors: `Weight_OK_Sensor` sets `Weight_OK` to pass an in-spec package, while `Weight_Overweight_Sensor` energizes `OverWeight_lane` to divert an overweight one, keeping the accept-or-reject decision fast and unambiguous.
+All three rungs are gated by `Sys_Online`, so the routine only runs when the line is started. When `Package_Entry_Sensor` detects a package, a `CTU` increments `Number_of_packages` to keep a live count. If `Weight_OK_Sensor` is made, `Weight_OK` is set to pass the package. If `Weight_Overweight_Sensor` is made instead, `OverWeight_lane` is energized to divert the package to the oversized lane.
 
 ---
 
