@@ -113,7 +113,7 @@ PK --> DOCK["🚚 Loading Dock"]
 
 | Main Overview HMI | Manual Control Screen | Alarm Screen |
 |:---:|:---:|:---:|
-| ![Main Overview](Warehouse-%20overview.png) | ![Manual Control](warehouse-manual%20control%20hmi.png) | ![Alarm Screen](warehouse-%20alarms%20hmi.png) |
+| ![Main Overview](Warehouse-%20overview.png) | ![Manual Control](warehouse-manual%20control%20hmi.png) | ![Alarm Screen](warehouse-%20alrams%20hmi.png) |
 
 ---
 
