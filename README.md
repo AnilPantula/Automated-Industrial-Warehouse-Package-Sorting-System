@@ -113,7 +113,7 @@ PK --> DOCK["🚚 Loading Dock"]
 
 | Main Overview HMI | Manual Control Screen | Alarm Screen |
 |:---:|:---:|:---:|
-| ![Main Overview](Warehouse-%20overview.png) | ![Manual Control](warehouse-manual%20control%20hmi.png) | ![Alarm Screen](warehouse-%20alrams%20hmi.png) |
+| ![Main Overview](Warehouse-%20overview.png) | ![Manual Control](warehouse-manual%20control%20hmi.png) | ![Alarm Screen](warehouse-%20alarms%20hmi.png) |
 
 ---
 
@@ -143,7 +143,7 @@ Reads a package barcode and shows the PLC routing it to the selected lane, energ
 
 ![Package Detection, Counting and Weight](Warehouse-%20numberweight.png)
 
-A photo-eye detects each package entering the line, a count-up counter increments the running package total, and a load cell provides the weight value that is compared against tolerance limits. Keeping detection, counting, and weight in one routine holds all of a package's data together as it indexes, so the count stays aligned with real product and out-of-tolerance packages are flagged for the Oversized lane before sorting. Analog limit comparison was chosen for the weight check so the acceptance band can be tuned from the HMI without a program change.
+Every rung is gated by `Sys_Online`, so no counting or weight checking happens unless the line is started. A `Package_Entry_Sensor` drives a `CTU` counter (`Number_of_packages`) that increments as each package enters, keeping a live count of product on the line. Weight is evaluated with two discrete sensors: `Weight_OK_Sensor` sets the `Weight_OK` bit to pass an in-spec package, while `Weight_Overweight_Sensor` energizes `OverWeight_lane` to divert an overweight package to the oversized lane. Using dedicated OK and overweight sensors keeps the accept-or-reject decision fast and unambiguous, and gating every rung on `Sys_Online` guarantees the line never counts or routes while it is stopped.
 
 ---
 
