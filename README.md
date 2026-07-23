@@ -81,21 +81,6 @@ The system is supervised end-to-end from a FactoryTalk View HMI, with live statu
 - ✔ Manual Mode
 - ✔ FactoryTalk View HMI Supervision
 
----
-
-## 🔄 Control Sequence
-
-```mermaid
-flowchart TB
-A["📥 Package Detected"] --> B["🏷️ Barcode Read"]
-B --> C["⚖️ Weight Inspection"]
-C --> D["🔀 Destination Decision"]
-D --> E["➡️ Conveyor Routing"]
-E --> F["📍 Lane Detection"]
-F --> G["📦 Packaging"]
-G --> H["🚚 Shipment"]
-H --> I["🔢 Counter Update"]
-```
 
 ---
 
