@@ -24,9 +24,10 @@
 
 ## ▶️ Demo
 
-<video src="PASTE_WAREHOUSE_DEMO_ASSET_URL" controls width="90%"></video>
-
-Package flow from receiving through barcode read, weight inspection, sorting, and out to the loading dock.
+<!-- Replace with an embedded GIF or a linked MP4/YouTube walkthrough. GIFs autoplay inline on GitHub. -->
+<p align="center">
+  <img src="Videos/system-demo.gif" alt="System demo, package flow from receiving through sorting to loading dock" width="90%">
+</p>
 
 ---
 
@@ -132,11 +133,74 @@ PK --> DOCK["🚚 Loading Dock"]
 
 ---
 
-## 📹 Alarm PLC Demonstration
+## 📹 System Demonstrations
 
-<video src="PASTE_WAREHOUSE_ALARM_ASSET_URL" controls width="90%"></video>
+### Alarm Activation
 
-The alarm PLC logic in action: a jam, E-stop, or motor fault triggering and latching an alarm on the HMI, and clearing on reset.
+<!-- 🎥 link or embed Videos/AlarmActivation.mp4 -->
+[▶ AlarmActivation.mp4](Videos/AlarmActivation.mp4)
+
+Triggers a fault condition and shows the alarm latching, annunciating on the FactoryTalk View alarm summary, and clearing on operator acknowledgement.
+
+---
+
+### Destination Selection
+
+<!-- 🎥 link or embed Videos/DestinationSelection.mp4 -->
+[▶ DestinationSelection.mp4](Videos/DestinationSelection.mp4)
+
+Reads a package barcode and shows the PLC routing it to the selected lane, energizing the correct divert and updating the lane screen and package count.
+
+---
+
+## ⚙️ PLC Logic
+
+### Package Detection, Counting & Weight
+
+![Package Detection, Counting and Weight](Warehouse-%20numberweight.png)
+
+Every rung is gated by `Sys_Online`, so counting and weight checks only run while the line is started. `Package_Entry_Sensor` drives a `CTU` (`Number_of_packages`) that increments as each package enters. `Weight_OK_Sensor` sets `Weight_OK` to pass an in-spec package, and `Weight_Overweight_Sensor` energizes `OverWeight_lane` to send an overweight package to the oversized lane.
+
+---
+
+### Destination Sorting
+
+![Destination Sorting Logic](warehouse-destination.png)
+
+Each rung is gated by `Sys_Online`, and the standard lanes also require `Weight_OK`. An `EQU` compares `Destenation_code` against 1, 2, or 3 and energizes the matching lane, `Lane_1` through `Lane_3`. `Lane_4` is gated by `OverWeight_lane` with code 4, routing overweight packages to the oversized lane.
+
+---
+
+### Conveyor Interlocking
+
+![Conveyor Interlocking Logic](Warehouse-interlocking.png)
+
+Each conveyor is interlocked behind the one before it. `Conveyor1_Motor` and `Saftey_OK` energize `conveyor2_Motor`, and `conveyor2_Motor` with `Saftey_OK` energizes `Main_Conveyor_Motor`. Because `Saftey_OK` is in every rung, losing it stops all of the conveyors.
+
+---
+
+### Alarm Handling
+
+![Alarm Handling Logic](warehouse-%20alarms.png)
+
+`Conv_Jam_Sensor` starts `Jam_onTimer` (10 s), and `Alarm_Jam` latches only if the sensor is still blocked when the timer finishes. `E_Stop` latches `Alarm_EStop`, and a running `Conveyor1_Motor` with no `Motor1_feedback` latches `Alarm_Motor_Fault`. Each alarm is latched (`OTL`) and cleared by `Reset_Jam`, `Reset_E_Stop`, or `Reset_Motor_Alarm` (`OTU`).
+
+---
+
+### System Start (System Online)
+
+![System Start Logic](warehouse-start.png)
+
+`Master_start_pb` sets `Sys_Online`, which seals in through its own contact and holds while `Saftey_OK` is on and `Master_Stop_Pb` and `E_Stop` are clear. `Saftey_OK` is set only when `E_Stop`, `Alarm_Jam`, `Alarm_Motor_Fault`, and `Alarm_EStop` are all clear. With `Sys_Online` and `Saftey_OK` both on, `Conveyor1_Motor` starts.
+
+---
+
+### Full PLC Logic Walkthrough
+
+<!-- 🎥 link or embed Videos/LogicWalkthrough.mp4 -->
+[▶ LogicWalkthrough.mp4](Videos/LogicWalkthrough.mp4)
+
+A complete rung-by-rung walkthrough of the program, following a package from detection and barcode read through weight inspection, destination routing, interlocking, and counting, with the alarm handling and emergency-stop response demonstrated live on the HMI.
 
 ---
 
