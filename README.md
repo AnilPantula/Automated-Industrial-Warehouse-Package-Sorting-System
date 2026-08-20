@@ -83,22 +83,6 @@ The system is supervised end-to-end from a FactoryTalk View HMI, with live statu
 
 ---
 
-## 🔄 Control Sequence
-
-```mermaid
-flowchart TB
-A["📥 Package Detected"] --> B["🏷️ Barcode Read"]
-B --> C["⚖️ Weight Inspection"]
-C --> D["🔀 Destination Decision"]
-D --> E["➡️ Conveyor Routing"]
-E --> F["📍 Lane Detection"]
-F --> G["📦 Packaging"]
-G --> H["🚚 Shipment"]
-H --> I["🔢 Counter Update"]
-```
-
----
-
 ## 🏗️ System Architecture
 
 ```mermaid
@@ -192,15 +176,6 @@ Each conveyor is interlocked behind the one before it. `Conveyor1_Motor` and `Sa
 ![System Start Logic](warehouse-start.png)
 
 `Master_start_pb` sets `Sys_Online`, which seals in through its own contact and holds while `Saftey_OK` is on and `Master_Stop_Pb` and `E_Stop` are clear. `Saftey_OK` is set only when `E_Stop`, `Alarm_Jam`, `Alarm_Motor_Fault`, and `Alarm_EStop` are all clear. With `Sys_Online` and `Saftey_OK` both on, `Conveyor1_Motor` starts.
-
----
-
-### Full PLC Logic Walkthrough
-
-<!-- 🎥 link or embed Videos/LogicWalkthrough.mp4 -->
-[▶ LogicWalkthrough.mp4](Videos/LogicWalkthrough.mp4)
-
-A complete rung-by-rung walkthrough of the program, following a package from detection and barcode read through weight inspection, destination routing, interlocking, and counting, with the alarm handling and emergency-stop response demonstrated live on the HMI.
 
 ---
 
