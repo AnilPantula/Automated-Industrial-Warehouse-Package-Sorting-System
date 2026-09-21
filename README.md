@@ -24,10 +24,9 @@
 
 ## ▶️ Demo
 
-<!-- Replace with an embedded GIF or a linked MP4/YouTube walkthrough. GIFs autoplay inline on GitHub. -->
-<p align="center">
-  <img src="Videos/system-demo.gif" alt="System demo, package flow from receiving through sorting to loading dock" width="90%">
-</p>
+[![Automated Warehouse HMI Demo](https://img.youtube.com/vi/Vl4N5LXCTo0/hqdefault.jpg)](https://youtu.be/Vl4N5LXCTo0)
+
+Full system demo on the FactoryTalk View HMI: package flow from receiving through sorting to the loading dock.
 
 ---
 
@@ -121,8 +120,7 @@ PK --> DOCK["🚚 Loading Dock"]
 
 ### Alarm Activation
 
-<!-- 🎥 link or embed Videos/AlarmActivation.mp4 -->
-[▶ AlarmActivation.mp4](Videos/AlarmActivation.mp4)
+[![Automated Warehouse Alarms Explained](https://img.youtube.com/vi/ynWUJaI5yr0/hqdefault.jpg)](https://youtu.be/ynWUJaI5yr0)
 
 Triggers a fault condition and shows the alarm latching, annunciating on the FactoryTalk View alarm summary, and clearing on operator acknowledgement.
 
@@ -130,10 +128,9 @@ Triggers a fault condition and shows the alarm latching, annunciating on the Fac
 
 ### Destination Selection
 
-<!-- 🎥 link or embed Videos/DestinationSelection.mp4 -->
-[▶ DestinationSelection.mp4](Videos/DestinationSelection.mp4)
+[![Automated Warehouse Destination PLC](https://img.youtube.com/vi/6kzkSof95e0/hqdefault.jpg)](https://youtu.be/6kzkSof95e0)
 
-Reads a package barcode and shows the PLC routing it to the selected lane, energizing the correct divert and updating the lane screen and package count.
+Shows the destination routing logic sending a package to the selected lane, energizing the correct divert and updating the lane screen and package count.
 
 ---
 
