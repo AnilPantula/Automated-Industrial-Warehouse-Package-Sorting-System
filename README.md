@@ -112,7 +112,7 @@ PK --> DOCK["🚚 Loading Dock"]
 
 | Main Overview HMI | Manual Control Screen | Alarm Screen |
 |:---:|:---:|:---:|
-| ![Main Overview](Warehouse-%20overview.png) | ![Manual Control](warehouse-manual%20control%20hmi.png) | ![Alarm Screen](warehouse-%20alarms%20hmi.png) |
+| ![Main Overview](Warehouse-%20overview.png) | ![Manual Control](warehouse-manual%20control%20hmi.png) | ![Alarm Screen](warehouse-%20alrams%20hmi.png) |
 
 ---
 
@@ -240,10 +240,10 @@ Each conveyor is interlocked behind the one before it. `Conveyor1_Motor` and `Sa
 
 ## 👤 About the Author
 
-**Anil Pantula**, Electrical Engineering Student, University of Windsor
-Automation Technician Co-op @ Asamaka Industries Ltd.
+**Anil Pantula**
+Electrical Engineering Student | Controls & Automation
 
-Pursuing roles in Industrial Automation · Controls Engineering · PLC Programming · Robotics · Mechatronics
+Hands-on experience with PLC programming, HMI development, industrial robotics and automation systems. Interested in controls engineering, industrial automation, robotics, power, and PCB design.
 
 <!-- Add LinkedIn / email links here -->
 
